@@ -110,6 +110,7 @@ pub use palette::DEFAULT_PALETTE;
 ///                 }
 ///             })
 ///             .collect(),
+///         notes: vec![],
 ///         scenes: placeholder::SCENES.to_vec(),
 ///         layers: placeholder::LAYERS.to_vec(),
 ///     }
@@ -202,6 +203,7 @@ pub fn load(filename: &str) -> Result<DotVoxData, &'static str> {
 ///                 }
 ///             })
 ///             .collect(),
+///         notes: vec![],
 ///         scenes: placeholder::SCENES.to_vec(),
 ///         layers: placeholder::LAYERS.to_vec(),
 ///     }
@@ -331,6 +333,7 @@ mod tests {
             index_map: DEFAULT_INDEX_MAP.to_vec(),
             palette,
             materials,
+            notes: vec![],
             scenes,
             layers,
         }

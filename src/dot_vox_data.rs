@@ -16,6 +16,8 @@ pub struct DotVoxData {
     pub palette: Vec<Color>,
     /// A `Vec` containing all the [`Material`]s set.
     pub materials: Vec<Material>,
+    /// Notes for colors in the scene.
+    pub notes: Vec<String>,
     /// Scene. The first node in this list is always the root node.
     pub scenes: Vec<SceneNode>,
     /// Layers. Used by scene transform nodes.

@@ -35,6 +35,7 @@ pub enum Chunk {
     ShapeNode(SceneShape),
     Layer(RawLayer),
     IndexMap(Vec<u8>),
+    Note(Vec<String>),
     Unknown(String),
     Invalid(Vec<u8>),
 }
@@ -207,6 +208,7 @@ fn map_chunk_to_data(version: u32, main: Chunk) -> DotVoxData {
             let mut index_map_holder = DEFAULT_INDEX_MAP.to_vec();
             let mut palette_holder: Vec<Color> = DEFAULT_PALETTE.to_vec();
             let mut materials: Vec<Material> = vec![];
+            let mut notes_holder: Vec<String> = vec![];
             let mut scene: Vec<SceneNode> = vec![];
             let mut layers: Vec<Layer> = Vec::new();
 
@@ -221,6 +223,7 @@ fn map_chunk_to_data(version: u32, main: Chunk) -> DotVoxData {
                     Chunk::IndexMap(index_map) => index_map_holder = index_map,
                     Chunk::Palette(palette) => palette_holder = palette,
                     Chunk::Material(material) => materials.push(material),
+                    Chunk::Note(notes) => notes_holder = notes,
                     Chunk::TransformNode(scene_transform) => {
                         scene.push(SceneNode::Transform {
                             attributes: scene_transform.header.attributes,
@@ -261,6 +264,7 @@ fn map_chunk_to_data(version: u32, main: Chunk) -> DotVoxData {
                 index_map: index_map_holder,
                 palette: palette_holder,
                 materials,
+                notes: notes_holder,
                 scenes: scene,
                 layers,
             }
@@ -271,6 +275,7 @@ fn map_chunk_to_data(version: u32, main: Chunk) -> DotVoxData {
             index_map: vec![],
             palette: vec![],
             materials: vec![],
+            notes: vec![],
             scenes: vec![],
             layers: vec![],
         },
@@ -298,6 +303,7 @@ fn build_chunk(id: &str, chunk_content: &[u8], children_size: u32, child_content
             "nSHP" => build_scene_shape_chunk(chunk_content),
             "LAYR" => build_layer_chunk(chunk_content),
             "IMAP" => build_imap_chunk(chunk_content),
+            "NOTE" => build_note_chunk(chunk_content),
             _ => {
                 debug!("Unknown childless chunk {:?}", id);
                 Chunk::Unknown(id.to_owned())
@@ -339,6 +345,13 @@ fn build_palette_chunk(chunk_content: &[u8]) -> Chunk {
 fn build_imap_chunk(chunk_content: &[u8]) -> Chunk {
     if let Ok((_, index_map)) = palette::extract_index_map(chunk_content) {
         return Chunk::IndexMap(index_map.to_vec());
+    }
+    Chunk::Invalid(chunk_content.to_vec())
+}
+
+fn build_note_chunk(chunk_content: &[u8]) -> Chunk {
+    if let Ok((_, note)) = palette::extract_note(chunk_content) {
+        return Chunk::Note(note);
     }
     Chunk::Invalid(chunk_content.to_vec())
 }
@@ -406,7 +419,7 @@ fn parse_dict_entry(i: &[u8]) -> IResult<&[u8], (String, String)> {
     pair(parse_string, parse_string)(i)
 }
 
-fn parse_string(i: &[u8]) -> IResult<&[u8], String> {
+pub fn parse_string(i: &[u8]) -> IResult<&[u8], String> {
     let bytes = flat_map(le_u32, take);
     map_res(bytes, to_str)(i)
 }
